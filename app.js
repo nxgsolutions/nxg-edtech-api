@@ -5,10 +5,8 @@ const { StatusCodes } = require("http-status-codes");
 const uniqueValidator = require("mongoose-unique-validator");
 const moment = require("moment");
 
-// const ObjectId = require("mongodb").ObjectId
-
 const app = express();
-const PORT = 8181;
+const PORT = 8182;
 
 app.use(express.json());
 
@@ -19,26 +17,25 @@ app.use(
 );
 
 try {
-  mongoose.connect("mongodb://0.0.0.0:27017/studentDB", {
+  mongoose.connect("mongodb://0.0.0.0:27017/nxgdb", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
-  // console.log("S")
 } catch (error) {
-  console.log("Error");
+  console.log("Error ",error);
 }
 
-const adtechSchema = new mongoose.Schema({
-  newspaper_date: { type: String, required: true },
+const articleSchema = new mongoose.Schema({
+  newspaper_date: { type: Date, required: true },
   article_type: { type: String, required: true },
   article_headline: { type: String, required: true },
   article_url: { type: String, required: true },
   article_content: { type: String, required: true },
   importance: { type: String, required: true },
-  createdate: { type: String, required: true },
+  createdate: { type: Date, required: true },
   created_by: { type: String, required: true },
   modified_by: { type: String, required: false },
-  modified_date: { type: String, required: false },
+  modified_date: { type: Date, required: false },
 });
 
 const regSchema = new mongoose.Schema({
@@ -48,25 +45,40 @@ const regSchema = new mongoose.Schema({
   password: { type: String, required: true },
 });
 
+// Schema Validation
 regSchema.plugin(uniqueValidator);
-// const regSchema = {
-//     username: String,
-//     mobile: String,
-//     email: String,
-//     password: String
-// }
-const regModel = mongoose.model("registration", regSchema);
-const adtechModel = mongoose.model("ad-Tech", adtechSchema); //new collection created
+articleSchema.plugin(uniqueValidator);
 
-// get data for adTech
-app.get("/getadtech", (req, res) => {
-  adtechModel
+const regModel = mongoose.model("registration", regSchema);
+const newsArticleModel = mongoose.model("news_articles", articleSchema);
+
+// Get All News Articles
+app.get("/getarticles", (req, res) => {
+  newsArticleModel
     .find()
     .then((response) => {
-      if (response == null) {
+      var responseObject =[];
+      if (response.length == 0) {
         res.send("Data not found!");
-      } else {
-        res.send(response);
+      } 
+      else {
+        response.forEach((data)=>{
+          let respData = {
+            _id: response._id,
+            newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
+            article_type: data.article_type,
+            article_headline: data.article_headline,
+            article_url: data.article_url,
+            article_content: data.article_content,
+            importance: data.importance,
+            createdate: moment(data.createdate).format("DD-MMM-YYYY"),
+            created_by: data.created_by,
+            modified_date: data.modified_date,
+            modified_by: data.modified_by,
+          };
+          responseObject.push(respData);
+        })
+        res.status(200).json(responseObject);
       }
     })
     .catch((err) => {
@@ -75,17 +87,17 @@ app.get("/getadtech", (req, res) => {
     });
 });
 
-//post for adtech
-app.post("/addata", (req, res) => {
+//Add Article
+app.post("/addarticle", (req, res) => {
   try {
-    const data = new adtechModel({
-      newspaper_date: moment(req.body.newspaper_date).format("D-MMM-YYYY"),
+    const data = new newsArticleModel({
+      newspaper_date: req.body.newspaper_date,
       article_type: req.body.article_type,
       article_headline: req.body.article_headline,
       article_url: req.body.article_url,
       article_content: req.body.article_content,
       importance: req.body.importance,
-      createdate: moment(req.body.createdate).format("D-MMM-YYYY"),
+      createdate: req.body.createdate,
       created_by: req.body.created_by,
     });
 
@@ -99,25 +111,26 @@ app.post("/addata", (req, res) => {
   }
 });
 
-// get adtech by id
-app.get("/getadtech/:id", (req, res) => {
+// Get Article By Id
+app.get("/getarticle/:id", (req, res) => {
   let fetchId = req.params.id;
 
-  adtechModel
+  newsArticleModel
     .findById(fetchId)
     .then((response) => {
+      // console.log("id res ",response)
       if (response == null) {
         res.send("Data not found!");
       } else {
         let resObj = {
           _id: response._id,
-          newspaper_date: response.newspaper_date,
+          newspaper_date: moment(response.newspaper_date).format("DD-MMM-YYYY"),
           article_type: response.article_type,
           article_headline: response.article_headline,
           article_url: response.article_url,
           article_content: response.article_content,
           importance: response.importance,
-          createdate: moment(response.createdate).format("D-MMM-YYYY"),
+          createdate: moment(response.createdate).format("DD-MMM-YYYY"),
           created_by: response.created_by,
           modified_date: response.modified_date,
           modified_by: response.modified_by,
@@ -131,8 +144,45 @@ app.get("/getadtech/:id", (req, res) => {
     });
 });
 
-// update adtech by Importance
-app.put("/update/:id", (req, res) => {
+// Update News Article By Importance
+// app.put("/updatearticle/:id", (req, res) => {
+//   let updID = req.params.id;
+
+//   let obj = {
+//     importance: req.body.importance,
+//     modified_by: req.body.modified_by,
+//     modified_date: Date.now(),
+//   };
+
+//   newsArticleModel
+//     .findByIdAndUpdate({ _id: updID }, { $set: obj }, { new: true })
+//     .then((response) => {
+//       if (response == null) {
+//         res.send("Data not found!");
+//       } else {
+//         let respObj = {
+//           _id: response._id,
+//           newspaper_date: moment(response.newspaper_date).format("DD-MMM-YYYY"),
+//           article_type: response.article_type,
+//           article_headline: response.article_headline,
+//           article_url: response.article_url,
+//           article_content: response.article_content,
+//           importance: response.importance,
+//           createdate: moment(response.createdate).format("DD-MMM-YYYY"),
+//           created_by: response.created_by,
+//           modified_date: response.modified_date,
+//           modified_by: moment(response.modified_by).format("DD-MMM-YYYY"),
+//         };
+//         // res.status(200).json(respObj);
+//         res.send(response)
+//       }
+//     })
+//     .catch((err) => {
+//       console.log("Error ", err);
+//       res.send("Failed to update data!");
+//     });
+// });
+app.put("/updatearticle/:id", (req, res) => {
   let updID = req.params.id;
 
   let obj = {
@@ -141,7 +191,7 @@ app.put("/update/:id", (req, res) => {
     modified_date: Date.now(),
   };
 
-  adtechModel
+  newsArticleModel
     .findByIdAndUpdate({ _id: updID }, { $set: obj }, { new: true })
     .then((response) => {
       if (response == null) {
@@ -156,7 +206,7 @@ app.put("/update/:id", (req, res) => {
     });
 });
 
-// from date , to date filter
+// Date Filter
 app.get("/datefilter", (req, res) => {
   let fDate = new Date(req.query.fromDate);
   let tDate = new Date(req.query.toDate);
@@ -164,8 +214,8 @@ app.get("/datefilter", (req, res) => {
 
   console.log("fromDate => ", fDate);
   console.log("final toDate => ", todate);
-  
-  adtechModel
+
+  newsArticleModel
     .aggregate([
       {
         $match: {
@@ -178,10 +228,28 @@ app.get("/datefilter", (req, res) => {
     ])
     .then((response) => {
       // console.log("re ",response)
-      if (!response) {
+      var responseObject=[];
+      if (response.length == 0) {
         res.send("Data not found!");
       } else {
-        res.status(200).send(response);
+
+        response.forEach((data)=>{
+          let respData = {
+            _id: response._id,
+            newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
+            article_type: data.article_type,
+            article_headline: data.article_headline,
+            article_url: data.article_url,
+            article_content: data.article_content,
+            importance: data.importance,
+            createdate: moment(data.createdate).format("DD-MMM-YYYY"),
+            created_by: data.created_by,
+            modified_date: data.modified_date,
+            modified_by: data.modified_by,
+          };
+          responseObject.push(respData);
+        })
+        res.status(200).json(responseObject);
       }
     })
     .catch((err) => {
@@ -190,7 +258,8 @@ app.get("/datefilter", (req, res) => {
     });
 });
 
-//   get user by id
+
+// Get User By Id 
 app.get("/user/:id", (req, res) => {
   let fetchId = req.params.id;
   // console.log("Id ",fetchId)
@@ -283,10 +352,6 @@ app.post("/login", async function (req, res) {
     res.status(400).json({ error });
   }
 });
-
-// let myDate = new Date();
-// console.log(myDate)
-// console.log("moment",moment().format('D-MMM-YYYY'))
 
 app.listen(PORT, () => {
   console.log(`Running on port ${PORT}`);
