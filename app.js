@@ -6,7 +6,7 @@ const uniqueValidator = require("mongoose-unique-validator");
 const moment = require("moment");
 
 const app = express();
-const PORT = 8182;
+const PORT = 8181;
 
 app.use(express.json());
 
@@ -64,7 +64,7 @@ app.get("/getarticles", (req, res) => {
       else {
         response.forEach((data)=>{
           let respData = {
-            _id: response._id,
+            _id: data._id,
             newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
             article_type: data.article_type,
             article_headline: data.article_headline,
@@ -145,43 +145,6 @@ app.get("/getarticle/:id", (req, res) => {
 });
 
 // Update News Article By Importance
-// app.put("/updatearticle/:id", (req, res) => {
-//   let updID = req.params.id;
-
-//   let obj = {
-//     importance: req.body.importance,
-//     modified_by: req.body.modified_by,
-//     modified_date: Date.now(),
-//   };
-
-//   newsArticleModel
-//     .findByIdAndUpdate({ _id: updID }, { $set: obj }, { new: true })
-//     .then((response) => {
-//       if (response == null) {
-//         res.send("Data not found!");
-//       } else {
-//         let respObj = {
-//           _id: response._id,
-//           newspaper_date: moment(response.newspaper_date).format("DD-MMM-YYYY"),
-//           article_type: response.article_type,
-//           article_headline: response.article_headline,
-//           article_url: response.article_url,
-//           article_content: response.article_content,
-//           importance: response.importance,
-//           createdate: moment(response.createdate).format("DD-MMM-YYYY"),
-//           created_by: response.created_by,
-//           modified_date: response.modified_date,
-//           modified_by: moment(response.modified_by).format("DD-MMM-YYYY"),
-//         };
-//         // res.status(200).json(respObj);
-//         res.send(response)
-//       }
-//     })
-//     .catch((err) => {
-//       console.log("Error ", err);
-//       res.send("Failed to update data!");
-//     });
-// });
 app.put("/updatearticle/:id", (req, res) => {
   let updID = req.params.id;
 
@@ -197,7 +160,21 @@ app.put("/updatearticle/:id", (req, res) => {
       if (response == null) {
         res.send("Data not found!");
       } else {
-        res.status(200).send(response);
+        let respObj = {
+          _id: response._id,
+          newspaper_date: moment(response.newspaper_date).format("DD-MMM-YYYY"),
+          article_type: response.article_type,
+          article_headline: response.article_headline,
+          article_url: response.article_url,
+          article_content: response.article_content,
+          importance: response.importance,
+          createdate: moment(response.createdate).format("DD-MMM-YYYY"),
+          created_by: response.created_by,
+          modified_date: moment(response.modified_date).format("DD-MMM-YYYY"),
+          modified_by: response.modified_by,
+        };
+        res.status(200).json(respObj);
+        // res.send(response)
       }
     })
     .catch((err) => {
