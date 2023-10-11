@@ -22,7 +22,7 @@ try {
     useUnifiedTopology: true,
   });
 } catch (error) {
-  console.log("Error ",error);
+  console.log("Error ", error);
 }
 
 const articleSchema = new mongoose.Schema({
@@ -54,15 +54,66 @@ const newsArticleModel = mongoose.model("news_articles", articleSchema);
 
 // Get All News Articles
 app.get("/getarticles", (req, res) => {
-  newsArticleModel
+  console.log("req query ", req.query);
+  if (req?.query?.fromDate && req?.query?.toDate) {
+
+    let fDate = new Date(req.query.fromDate);
+    let tDate = new Date(req.query.toDate);
+    let todate = new Date(tDate.setDate(tDate.getDate() + 1));
+
+    console.log("fromDate => ", fDate);
+    console.log("final toDate => ", todate);
+
+    newsArticleModel
+      .aggregate([
+        {
+          $match: {
+            createdate: {
+              $gte: fDate,
+              $lt: todate,
+            },
+          },
+        },
+      ])
+      .then((response) => {
+        // console.log("re ",response)
+        var responseObject = [];
+        if (response.length == 0) {
+          res.send("Data not found!");
+        } else {
+          response.forEach((data) => {
+            let respData = {
+              _id: response._id,
+              newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
+              article_type: data.article_type,
+              article_headline: data.article_headline,
+              article_url: data.article_url,
+              article_content: data.article_content,
+              importance: data.importance,
+              createdate: moment(data.createdate).format("DD-MMM-YYYY"),
+              created_by: data.created_by,
+              modified_date: data.modified_date,
+              modified_by: data.modified_by,
+            };
+            responseObject.push(respData);
+          });
+          res.status(200).json(responseObject);
+        }
+      })
+      .catch((err) => {
+        console.log("Error ", err);
+        res.send("Failed to get data");
+      });
+  } else {
+
+    newsArticleModel
     .find()
     .then((response) => {
-      var responseObject =[];
+      var responseObject = [];
       if (response.length == 0) {
         res.send("Data not found!");
-      } 
-      else {
-        response.forEach((data)=>{
+      } else {
+        response.forEach((data) => {
           let respData = {
             _id: data._id,
             newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
@@ -77,7 +128,7 @@ app.get("/getarticles", (req, res) => {
             modified_by: data.modified_by,
           };
           responseObject.push(respData);
-        })
+        });
         res.status(200).json(responseObject);
       }
     })
@@ -85,6 +136,9 @@ app.get("/getarticles", (req, res) => {
       console.log("Error ", err);
       res.send("Failed to get data!");
     });
+
+  }
+  
 });
 
 //Add Article
@@ -183,60 +237,7 @@ app.put("/updatearticle/:id", (req, res) => {
     });
 });
 
-// Date Filter
-app.get("/datefilter", (req, res) => {
-  let fDate = new Date(req.query.fromDate);
-  let tDate = new Date(req.query.toDate);
-  let todate = new Date(tDate.setDate(tDate.getDate() + 1));
-
-  console.log("fromDate => ", fDate);
-  console.log("final toDate => ", todate);
-
-  newsArticleModel
-    .aggregate([
-      {
-        $match: {
-          createdate: {
-            $gte: fDate,
-            $lt: todate,
-          },
-        },
-      },
-    ])
-    .then((response) => {
-      // console.log("re ",response)
-      var responseObject=[];
-      if (response.length == 0) {
-        res.send("Data not found!");
-      } else {
-
-        response.forEach((data)=>{
-          let respData = {
-            _id: response._id,
-            newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
-            article_type: data.article_type,
-            article_headline: data.article_headline,
-            article_url: data.article_url,
-            article_content: data.article_content,
-            importance: data.importance,
-            createdate: moment(data.createdate).format("DD-MMM-YYYY"),
-            created_by: data.created_by,
-            modified_date: data.modified_date,
-            modified_by: data.modified_by,
-          };
-          responseObject.push(respData);
-        })
-        res.status(200).json(responseObject);
-      }
-    })
-    .catch((err) => {
-      console.log("Error ", err);
-      res.send("Failed to get data");
-    });
-});
-
-
-// Get User By Id 
+// Get User By Id
 app.get("/user/:id", (req, res) => {
   let fetchId = req.params.id;
   // console.log("Id ",fetchId)
@@ -307,14 +308,12 @@ app.post("/login", async function (req, res) {
       //check if password matches
       const result = req.body.password === user.password;
       if (result) {
-        return res
-          .status(200)
-          .json({
-            login: true,
-            username: user.username,
-            userId: user._id,
-            message: "User logged in successfully!",
-          });
+        return res.status(200).json({
+          login: true,
+          username: user.username,
+          userId: user._id,
+          message: "User logged in successfully!",
+        });
       } else {
         return res
           .status(400)
