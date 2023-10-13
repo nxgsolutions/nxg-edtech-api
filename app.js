@@ -17,7 +17,7 @@ app.use(
 );
 
 try {
-  mongoose.connect("mongodb://0.0.0.0:27017/nxgdb", {
+  mongoose.connect("mongodb://35.231.33.77:27017/nxgdb?serverSelectionTimeoutMS=20000&appName=mongosh+2.0.1&directConnection=true", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
@@ -50,7 +50,7 @@ regSchema.plugin(uniqueValidator);
 articleSchema.plugin(uniqueValidator);
 
 const regModel = mongoose.model("registration", regSchema);
-const newsArticleModel = mongoose.model("news_articles", articleSchema);
+const newsArticleModel = mongoose.model("news_data_indian_exps", articleSchema);
 
 // Get All News Articles
 app.get("/getarticles", (req, res) => {
@@ -68,7 +68,7 @@ app.get("/getarticles", (req, res) => {
       .aggregate([
         {
           $match: {
-            createdate: {
+            newspaper_date: {
               $gte: fDate,
               $lt: todate,
             },
@@ -79,7 +79,7 @@ app.get("/getarticles", (req, res) => {
         // console.log("re ",response)
         var responseObject = [];
         if (response.length == 0) {
-          res.send("Data not found!");
+          res.status(404).send("Data not found!");
         } else {
           response.forEach((data) => {
             let respData = {
