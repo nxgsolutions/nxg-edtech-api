@@ -54,7 +54,6 @@ const newsArticleModel = mongoose.model("news_data_indian_exps", articleSchema);
 
 // Get All News Articles
 app.get("/getarticles", (req, res) => {
-  console.log("req query ", req.query);
   if (req?.query?.fromDate && req?.query?.toDate) {
 
     let fDate = new Date(req.query.fromDate);
@@ -76,7 +75,6 @@ app.get("/getarticles", (req, res) => {
         },
       ])
       .then((response) => {
-        // console.log("re ",response)
         var responseObject = [];
         if (response.length == 0) {
           res.status(404).send("Data not found!");
@@ -111,7 +109,7 @@ app.get("/getarticles", (req, res) => {
     .then((response) => {
       var responseObject = [];
       if (response.length == 0) {
-        res.send("Data not found!");
+        res.status(404).send("Data not found!");
       } else {
         response.forEach((data) => {
           let respData = {
@@ -172,7 +170,6 @@ app.get("/getarticle/:id", (req, res) => {
   newsArticleModel
     .findById(fetchId)
     .then((response) => {
-      // console.log("id res ",response)
       if (response == null) {
         res.send("Data not found!");
       } else {
@@ -211,9 +208,7 @@ app.put("/updatearticle/:id", (req, res) => {
   newsArticleModel
     .findByIdAndUpdate({ _id: updID }, { $set: obj }, { new: true })
     .then((response) => {
-      if (response == null) {
-        res.send("Data not found!");
-      } else {
+      console.log("upd ",response)
         let respObj = {
           _id: response._id,
           newspaper_date: moment(response.newspaper_date).format("DD-MMM-YYYY"),
@@ -226,10 +221,10 @@ app.put("/updatearticle/:id", (req, res) => {
           created_by: response.created_by,
           modified_date: moment(response.modified_date).format("DD-MMM-YYYY"),
           modified_by: response.modified_by,
+          message:"Data Updated!"
         };
         res.status(200).json(respObj);
-        // res.send(response)
-      }
+      // }
     })
     .catch((err) => {
       console.log("Error ", err);
