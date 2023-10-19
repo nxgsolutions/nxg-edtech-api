@@ -81,7 +81,7 @@ app.get("/getarticles", (req, res) => {
         } else {
           response.forEach((data) => {
             let respData = {
-              _id: response._id,
+              _id: data._id,
               newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
               article_type: data.article_type,
               article_headline: data.article_headline,
