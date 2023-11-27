@@ -17,7 +17,7 @@ app.use(
 );
 
 try {
-  mongoose.connect("mongodb://35.231.33.77:27017/nxgdb?serverSelectionTimeoutMS=20000&appName=mongosh+2.0.1&directConnection=true", {
+  mongoose.connect("mongodb://myUserAdmin:NXG%40%2323@35.237.189.119:27017/nxgdb?authMechanism=DEFAULT&authSource=admin", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
@@ -27,6 +27,7 @@ try {
 
 const articleSchema = new mongoose.Schema({
   newspaper_date: { type: Date, required: true },
+  news_paper_name: { type: String, required: true },
   article_type: { type: String, required: true },
   article_headline: { type: String, required: true },
   article_url: { type: String, required: true },
@@ -49,8 +50,8 @@ const regSchema = new mongoose.Schema({
 regSchema.plugin(uniqueValidator);
 articleSchema.plugin(uniqueValidator);
 
-const regModel = mongoose.model("registration", regSchema);
-const newsArticleModel = mongoose.model("news_data_indian_exps", articleSchema);
+const regModel = mongoose.model("registrations", regSchema);
+const newsArticleModel = mongoose.model("news_articles", articleSchema);
 
 // Get All News Articles
 app.get("/getarticles", (req, res) => {
@@ -83,6 +84,7 @@ app.get("/getarticles", (req, res) => {
             let respData = {
               _id: data._id,
               newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
+              news_paper_name:data.news_paper_name,
               article_type: data.article_type,
               article_headline: data.article_headline,
               article_url: data.article_url,
@@ -115,6 +117,7 @@ app.get("/getarticles", (req, res) => {
           let respData = {
             _id: data._id,
             newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
+            news_paper_name:data.news_paper_name,
             article_type: data.article_type,
             article_headline: data.article_headline,
             article_url: data.article_url,
