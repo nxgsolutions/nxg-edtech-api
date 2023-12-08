@@ -17,7 +17,7 @@ app.use(
 );
 
 try {
-  mongoose.connect("mongodb://myUserAdmin:NXG%40%2323@35.237.189.119:27017/test?authMechanism=DEFAULT&authSource=admin", {
+  mongoose.connect("mongodb://myUserAdmin:NXG%40%2323@35.237.189.119:27017/nxgdb?authMechanism=DEFAULT&authSource=admin", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
@@ -179,7 +179,7 @@ app.get("/getarticle/:id", (req, res) => {
         let resObj = {
           _id: response._id,
           newspaper_date: moment(response.newspaper_date).format("DD-MMM-YYYY"),
-          news_paper_name:news_paper_name,
+          news_paper_name:response.news_paper_name,
           article_type: response.article_type,
           article_headline: response.article_headline,
           article_url: response.article_url,
