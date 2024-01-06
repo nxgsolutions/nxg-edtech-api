@@ -45,6 +45,20 @@ const regSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
 });
+const bookCollectionSchema = new mongoose.Schema({
+  page_no: { type: Number, required: true },
+  image_url: { type: String, required: true },
+  chapter_no: { type: Number },
+  chapter_name: { type: String },
+  chapter_alias:{type:String},
+  chapter_no: { type: Number, required: true },
+  text: { type: String, required: true },
+  created_date: { type: Date, required: true },
+  created_by: { type: String, required: true },
+  modified_by: { type: String, required: false },
+  modified_date: { type: Date, required: false },
+
+});
 
 // Schema Validation
 regSchema.plugin(uniqueValidator);
@@ -58,9 +72,7 @@ app.get("/getarticles", (req, res) => {
   if (req?.query?.fromDate && req?.query?.toDate) {
 
     let fDate = new Date(req.query.fromDate);
-    let tDate = new Date(req.query.toDate);
-    let todate = new Date(tDate.setDate(tDate.getDate() + 1));
-
+    let todate = new Date(req.query.toDate);
     console.log("fromDate => ", fDate);
     console.log("final toDate => ", todate);
 
@@ -70,7 +82,7 @@ app.get("/getarticles", (req, res) => {
           $match: {
             newspaper_date: {
               $gte: fDate,
-              $lt: todate,
+              $lte: todate,
             },
           },
         },
@@ -84,7 +96,7 @@ app.get("/getarticles", (req, res) => {
             let respData = {
               _id: data._id,
               newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
-              news_paper_name:data.news_paper_name,
+              news_paper_name: data.news_paper_name,
               article_type: data.article_type,
               article_headline: data.article_headline,
               article_url: data.article_url,
@@ -107,39 +119,39 @@ app.get("/getarticles", (req, res) => {
   } else {
 
     newsArticleModel
-    .find()
-    .then((response) => {
-      var responseObject = [];
-      if (response.length == 0) {
-        res.status(404).send("Data not found!");
-      } else {
-        response.forEach((data) => {
-          let respData = {
-            _id: data._id,
-            newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
-            news_paper_name:data.news_paper_name,
-            article_type: data.article_type,
-            article_headline: data.article_headline,
-            article_url: data.article_url,
-            article_content: data.article_content,
-            importance: data.importance,
-            createdate: moment(data.createdate).format("DD-MMM-YYYY"),
-            created_by: data.created_by,
-            modified_date: data.modified_date,
-            modified_by: data.modified_by,
-          };
-          responseObject.push(respData);
-        });
-        res.status(200).json(responseObject);
-      }
-    })
-    .catch((err) => {
-      console.log("Error ", err);
-      res.send("Failed to get data!");
-    });
+      .find()
+      .then((response) => {
+        var responseObject = [];
+        if (response.length == 0) {
+          res.status(404).send("Data not found!");
+        } else {
+          response.forEach((data) => {
+            let respData = {
+              _id: data._id,
+              newspaper_date: moment(data.newspaper_date).format("DD-MMM-YYYY"),
+              news_paper_name: data.news_paper_name,
+              article_type: data.article_type,
+              article_headline: data.article_headline,
+              article_url: data.article_url,
+              article_content: data.article_content,
+              importance: data.importance,
+              createdate: moment(data.createdate).format("DD-MMM-YYYY"),
+              created_by: data.created_by,
+              modified_date: data.modified_date,
+              modified_by: data.modified_by,
+            };
+            responseObject.push(respData);
+          });
+          res.status(200).json(responseObject);
+        }
+      })
+      .catch((err) => {
+        console.log("Error ", err);
+        res.send("Failed to get data!");
+      });
 
   }
-  
+
 });
 
 //Add Article
@@ -179,7 +191,7 @@ app.get("/getarticle/:id", (req, res) => {
         let resObj = {
           _id: response._id,
           newspaper_date: moment(response.newspaper_date).format("DD-MMM-YYYY"),
-          news_paper_name:response.news_paper_name,
+          news_paper_name: response.news_paper_name,
           article_type: response.article_type,
           article_headline: response.article_headline,
           article_url: response.article_url,
@@ -212,23 +224,23 @@ app.put("/updatearticle/:id", (req, res) => {
   newsArticleModel
     .findByIdAndUpdate({ _id: updID }, { $set: obj }, { new: true })
     .then((response) => {
-      console.log("upd ",response)
-        let respObj = {
-          _id: response._id,
-          newspaper_date: moment(response.newspaper_date).format("DD-MMM-YYYY"),
-          news_paper_name: response.news_paper_name,
-          article_type: response.article_type,
-          article_headline: response.article_headline,
-          article_url: response.article_url,
-          article_content: response.article_content,
-          importance: response.importance,
-          createdate: moment(response.createdate).format("DD-MMM-YYYY"),
-          created_by: response.created_by,
-          modified_date: moment(response.modified_date).format("DD-MMM-YYYY"),
-          modified_by: response.modified_by,
-          message:"Data Updated!"
-        };
-        res.status(200).json(respObj);
+      console.log("upd ", response)
+      let respObj = {
+        _id: response._id,
+        newspaper_date: moment(response.newspaper_date).format("DD-MMM-YYYY"),
+        news_paper_name: response.news_paper_name,
+        article_type: response.article_type,
+        article_headline: response.article_headline,
+        article_url: response.article_url,
+        article_content: response.article_content,
+        importance: response.importance,
+        createdate: moment(response.createdate).format("DD-MMM-YYYY"),
+        created_by: response.created_by,
+        modified_date: moment(response.modified_date).format("DD-MMM-YYYY"),
+        modified_by: response.modified_by,
+        message: "Data Updated!"
+      };
+      res.status(200).json(respObj);
       // }
     })
     .catch((err) => {
@@ -329,6 +341,136 @@ app.post("/login", async function (req, res) {
   }
 });
 
+app.get("/get-book-data", (req, res) => {
+
+  const bookModel = mongoose.model(req.query.collection_name, bookCollectionSchema)
+  bookModel.find()
+    .then((response) => {
+      var responseObject = [];
+      if (response.length == 0) {
+        res.status(404).send("Data Collection found!");
+      } else {
+        response.forEach((data) => {
+          let respData = {
+            _id:data._id,
+            page_no: data.page_no,
+            image_url: data.image_url,
+            chapter_no: data.chapter_no,
+            chapter_name: data.chapter_name,
+            chapter_alias:data.chapter_alias,
+            chapter_no: data.chapter_no,
+            text: data.text,
+            createdate: moment(data.created_date).format("DD-MMM-YYYY"),
+            created_by: data.created_by,
+            modified_date: data.modified_date,
+            modified_by: data.modified_by,
+          };
+          responseObject.push(respData);
+        });
+        res.status(200).json(responseObject);
+      }
+    })
+    .catch((err) => {
+      console.log("Error ", err);
+      res.send("Failed to get data!");
+    });
+
+});
+
+app.get("/get-all-books", async (req, res) => {
+
+  const db = mongoose.connection.db;
+  const collections = await db.listCollections().toArray();
+   console.log(collections);
+  let collectionArray = []
+  collections.forEach(element => {
+    // console.log(element.name)
+    collectionArray.push(element.name)
+  });
+  res.status(200).json(collectionArray)
+})
+
+app.put("/update-chapter/:id", (req, res) => {
+  let updID = req.params.id;
+let collection_name= req.body.collection_name;
+// console.log("cname",collection_name)
+  let obj = {
+    chapter_no: req.body.chapter_no,
+    chapter_name:req.body.chapter_name,
+    chapter_alias:"Chapter-"+req.body.chapter_no+": "+req.body.chapter_name,
+    modified_by: req.body.modified_by,
+    modified_date: Date.now(),
+  };
+  const bookModel = mongoose.model(collection_name, bookCollectionSchema)
+
+  bookModel
+    .findByIdAndUpdate({ _id: updID }, { $set: obj }, { new: true })
+    .then((data) => {
+      // console.log("upd ", data)
+      let respObj = {
+        _id: data._id,
+        page_no: data.page_no,
+        image_url: data.image_url,
+        chapter_no: obj.chapter_no,
+        chapter_name: obj.chapter_name,
+        chapter_alias: obj.chapter_alias,
+        chapter_no: data.chapter_no,
+        text: data.text,
+        createdate: data.created_date,
+        created_by: obj.created_by,
+        modified_date: data.modified_date,
+        modified_by: data.modified_by,
+      };
+      res.status(200).json(respObj);
+      // }
+    })
+    .catch((err) => {
+      console.log("Error ", err);
+      res.send("Failed to update data!");
+    });
+});
+
+app.put("/update-page-data/:id", (req, res) => {
+  let updID = req.params.id;
+let collection_name= req.body.collection_name;
+// console.log("cname",collection_name)
+  let obj = {
+    
+    chapter_no: req.body.chapter_no,
+    chapter_name:req.body.chapter_name,
+    chapter_alias:req.body.chapter_no==0?req.body.chapter_name:"Chapter-"+req.body.chapter_no+": "+req.body.chapter_name,
+    text: req.body.text,
+    modified_by: req.body.modified_by,
+    modified_date: Date.now(),
+  };
+  const bookModel = mongoose.model(collection_name, bookCollectionSchema)
+
+  bookModel
+    .findByIdAndUpdate({ _id: updID }, { $set: obj }, { new: true })
+    .then((data) => {
+      // console.log("upd ", data)
+      let respObj = {
+        _id: data._id,
+        page_no: data.page_no,
+        image_url: data.image_url,
+        chapter_no: obj.chapter_no,
+        chapter_name: obj.chapter_name,
+        chapter_alias: obj.chapter_alias,
+        chapter_no: data.chapter_no,
+        text: data.text,
+        createdate: data.created_date,
+        created_by: obj.created_by,
+        modified_date: data.modified_date,
+        modified_by: data.modified_by,
+      };
+      res.status(200).json(respObj);
+      // }
+    })
+    .catch((err) => {
+      console.log("Error ", err);
+      res.send("Failed to update data!");
+    });
+});
 app.listen(PORT, () => {
   console.log(`Running on port ${PORT}`);
 });
